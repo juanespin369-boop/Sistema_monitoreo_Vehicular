@@ -1,0 +1,28 @@
+{
+  "name": "sistema_monitoreo_vehicular",
+  "version": "1.0.0",
+  "description": "r# Sistema_monitoreo_Vehicular\r Sistema web de monitoreo vehicular con datos simulados",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juanespin369-boop/Sistema_monitoreo_Vehicular.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/juanespin369-boop/Sistema_monitoreo_Vehicular/issues"
+  },
+  "homepage": "https://github.com/juanespin369-boop/Sistema_monitoreo_Vehicular#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
+  }
+}
