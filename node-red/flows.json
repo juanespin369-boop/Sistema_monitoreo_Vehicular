@@ -1,0 +1,158 @@
+[
+    {
+        "id": "301cd8462ea90831",
+        "type": "inject",
+        "z": "a2eb87ae4c878415",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 230,
+        "y": 280,
+        "wires": [
+            [
+                "83c017f9d4d5ccec",
+                "bd8c5b2553e086f7",
+                "01705a44c54b1277"
+            ]
+        ]
+    },
+    {
+        "id": "83c017f9d4d5ccec",
+        "type": "function",
+        "z": "a2eb87ae4c878415",
+        "name": "function 1",
+        "func": "function aleatorio(min, max) {\n    return Number((Math.random() * (max - min) + min).toFixed(2));\n}\n\nmsg.payload = {\n    vehiculo_id: 1,\n\n    temperatura_motor: aleatorio(85, 105),\n\n    presion_neumaticos: {\n        delantero_izquierdo: aleatorio(30, 35),\n        delantero_derecho: aleatorio(30, 35),\n        trasero_izquierdo: aleatorio(30, 35),\n        trasero_derecho: aleatorio(30, 35)\n    },\n\n    voltaje_bateria: aleatorio(12, 14.5),\n\n    nivel_combustible: aleatorio(0, 100),\n\n    timestamp: new Date().toISOString()\n};\n\nglobal.set(\"vehiculo_1\", msg.payload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 180,
+        "wires": [
+            [
+                "343e4b3073be2191"
+            ]
+        ]
+    },
+    {
+        "id": "bd8c5b2553e086f7",
+        "type": "function",
+        "z": "a2eb87ae4c878415",
+        "name": "function 2",
+        "func": "function aleatorio(min, max) {\n    return Number((Math.random() * (max - min) + min).toFixed(2));\n}\n\nmsg.payload = {\n    vehiculo_id: 2,\n\n    temperatura_motor: aleatorio(85, 105),\n\n    presion_neumaticos: {\n        delantero_izquierdo: aleatorio(30, 35),\n        delantero_derecho: aleatorio(30, 35),\n        trasero_izquierdo: aleatorio(30, 35),\n        trasero_derecho: aleatorio(30, 35)\n    },\n\n    voltaje_bateria: aleatorio(12, 14.5),\n\n    nivel_combustible: aleatorio(0, 100),\n\n    timestamp: new Date().toISOString()\n};\n\nglobal.set(\"vehiculo_2\", msg.payload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 280,
+        "wires": [
+            [
+                "343e4b3073be2191"
+            ]
+        ]
+    },
+    {
+        "id": "01705a44c54b1277",
+        "type": "function",
+        "z": "a2eb87ae4c878415",
+        "name": "function 3",
+        "func": "function aleatorio(min, max) {\n    return Number((Math.random() * (max - min) + min).toFixed(2));\n}\n\nmsg.payload = {\n    vehiculo_id: 3,\n\n    temperatura_motor: aleatorio(85, 105),\n\n    presion_neumaticos: {\n        delantero_izquierdo: aleatorio(30, 35),\n        delantero_derecho: aleatorio(30, 35),\n        trasero_izquierdo: aleatorio(30, 35),\n        trasero_derecho: aleatorio(30, 35)\n    },\n\n    voltaje_bateria: aleatorio(12, 14.5),\n\n    nivel_combustible: aleatorio(0, 100),\n\n    timestamp: new Date().toISOString()\n};\n\nglobal.set(\"vehiculo_3\", msg.payload);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 360,
+        "wires": [
+            [
+                "343e4b3073be2191"
+            ]
+        ]
+    },
+    {
+        "id": "343e4b3073be2191",
+        "type": "debug",
+        "z": "a2eb87ae4c878415",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "48feb382db0c6e61",
+        "type": "http response",
+        "z": "a2eb87ae4c878415",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 630,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "e69b5a4838fae069",
+        "type": "function",
+        "z": "a2eb87ae4c878415",
+        "name": "function 4",
+        "func": "const id = msg.req.params.id;\n\nconst vehiculo = global.get(\"vehiculo_\" + id);\n\nif (!vehiculo) {\n    msg.statusCode = 404;\n    msg.payload = {\n        mensaje: \"Vehículo no encontrado\"\n    };\n\n    return msg;\n}\n\nmsg.payload = vehiculo;\nmsg.statusCode = 200;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 580,
+        "wires": [
+            [
+                "48feb382db0c6e61"
+            ]
+        ]
+    },
+    {
+        "id": "bbe6ea75af5dfe19",
+        "type": "http in",
+        "z": "a2eb87ae4c878415",
+        "name": "",
+        "url": "api/vehiculo/:id",
+        "method": "get",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 250,
+        "y": 580,
+        "wires": [
+            [
+                "e69b5a4838fae069"
+            ]
+        ]
+    }
+]

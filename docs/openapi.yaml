@@ -1,0 +1,445 @@
+openapi: 3.0.3
+
+info:
+  title: Sistema Inteligente de Monitoreo Vehicular
+  description: >
+    API REST para el monitoreo de vehículos mediante mediciones
+    simuladas en Node-RED, almacenamiento en PostgreSQL,
+    detección de anomalías y control de acceso por roles.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor local de desarrollo
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Autenticación
+    description: Inicio de sesión de usuarios
+
+  - name: Vehículos
+    description: Consulta de vehículos autorizados
+
+  - name: Mediciones
+    description: Consulta de mediciones actuales e históricas
+
+  - name: Alertas
+    description: Detección de anomalías y fallos de comunicación
+
+paths:
+
+  /login:
+    post:
+      tags:
+        - Autenticación
+      summary: Iniciar sesión
+      description: Verifica las credenciales y genera un token JWT.
+      security: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credenciales'
+
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaLogin'
+
+        '400':
+          $ref: '#/components/responses/SolicitudInvalida'
+
+        '401':
+          description: Correo o contraseña incorrectos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                mensaje: Correo o contraseña incorrectos
+
+        '500':
+          $ref: '#/components/responses/ErrorServidor'
+
+  /vehiculos:
+    get:
+      tags:
+        - Vehículos
+      summary: Consultar vehículos autorizados
+      description: >
+        El administrador puede consultar todos los vehículos.
+        El cliente únicamente puede consultar su vehículo asignado.
+
+      responses:
+        '200':
+          description: Lista de vehículos autorizados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vehiculo'
+
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+
+        '403':
+          $ref: '#/components/responses/AccesoDenegado'
+
+        '500':
+          $ref: '#/components/responses/ErrorServidor'
+
+  /vehiculos/{id}/mediciones/actual:
+    get:
+      tags:
+        - Mediciones
+      summary: Consultar la medición actual
+      description: >
+        CU-01. Obtiene la última medición almacenada
+        del vehículo solicitado.
+
+      parameters:
+        - $ref: '#/components/parameters/IdVehiculo'
+
+      responses:
+        '200':
+          description: Última medición del vehículo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Medicion'
+
+        '400':
+          $ref: '#/components/responses/SolicitudInvalida'
+
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+
+        '403':
+          $ref: '#/components/responses/AccesoDenegado'
+
+        '404':
+          description: Vehículo o medición no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                mensaje: No existen mediciones para este vehículo
+
+        '500':
+          $ref: '#/components/responses/ErrorServidor'
+
+  /vehiculos/{id}/historial:
+    get:
+      tags:
+        - Mediciones
+      summary: Consultar historial de mediciones
+      description: >
+        CU-03. Obtiene las mediciones almacenadas
+        dentro de un rango de fechas.
+
+      parameters:
+        - $ref: '#/components/parameters/IdVehiculo'
+
+        - name: inicio
+          in: query
+          required: true
+          description: Fecha y hora inicial de la consulta
+          schema:
+            type: string
+            format: date-time
+          example: '2026-11-25T00:00:00-05:00'
+
+        - name: fin
+          in: query
+          required: true
+          description: Fecha y hora final de la consulta
+          schema:
+            type: string
+            format: date-time
+          example: '2026-11-25T23:59:59-05:00'
+
+      responses:
+        '200':
+          description: Historial de mediciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Medicion'
+
+        '400':
+          description: Identificador o rango de fechas inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                mensaje: Rango de fechas inválido
+
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+
+        '403':
+          $ref: '#/components/responses/AccesoDenegado'
+
+        '404':
+          $ref: '#/components/responses/VehiculoNoEncontrado'
+
+        '500':
+          $ref: '#/components/responses/ErrorServidor'
+
+  /vehiculos/{id}/alertas:
+    get:
+      tags:
+        - Alertas
+      summary: Consultar anomalías del vehículo
+      description: >
+        CU-02. Identifica valores fuera de rango y detecta
+        la ausencia de nuevas mediciones durante 15 segundos.
+
+      parameters:
+        - $ref: '#/components/parameters/IdVehiculo'
+
+      responses:
+        '200':
+          description: Lista de alertas detectadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alerta'
+              example:
+                - tipo: temperatura
+                  mensaje: Temperatura del motor elevada
+
+        '400':
+          $ref: '#/components/responses/SolicitudInvalida'
+
+        '401':
+          $ref: '#/components/responses/NoAutenticado'
+
+        '403':
+          $ref: '#/components/responses/AccesoDenegado'
+
+        '404':
+          $ref: '#/components/responses/VehiculoNoEncontrado'
+
+        '500':
+          $ref: '#/components/responses/ErrorServidor'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdVehiculo:
+      name: id
+      in: path
+      required: true
+      description: Identificador del vehículo
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+
+  schemas:
+
+    Credenciales:
+      type: object
+      required:
+        - correo
+        - password
+      properties:
+        correo:
+          type: string
+          example: cliente1@example.com
+        password:
+          type: string
+          minLength: 1
+          format: password
+          example: contraseña_de_prueba
+
+    Usuario:
+      type: object
+      properties:
+        id_usuario:
+          type: integer
+          example: 2
+        nombre:
+          type: string
+          example: Cliente 1
+        correo:
+          type: string
+          example: cliente1@example.com
+        rol:
+          type: string
+          enum:
+            - administrador
+            - cliente
+          example: cliente
+
+    RespuestaLogin:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token JWT con vigencia de dos horas
+          example: token_jwt_de_ejemplo
+        usuario:
+          $ref: '#/components/schemas/Usuario'
+
+    Vehiculo:
+      type: object
+      properties:
+        id_vehiculo:
+          type: integer
+          example: 1
+        id_usuario:
+          type: integer
+          example: 2
+        marca:
+          type: string
+          example: Toyota
+        modelo:
+          type: string
+          example: Corolla
+        placa:
+          type: string
+          example: DEMO-001
+
+    Medicion:
+      type: object
+      properties:
+        id_medicion:
+          type: string
+          example: '1'
+
+        id_vehiculo:
+          type: integer
+          example: 1
+
+        temperatura_motor:
+          type: string
+          description: Temperatura del motor en grados Celsius
+          example: '95.50'
+
+        presion_delantera_izquierda:
+          type: string
+          description: Presión en PSI
+          example: '32.50'
+
+        presion_delantera_derecha:
+          type: string
+          description: Presión en PSI
+          example: '33.20'
+
+        presion_trasera_izquierda:
+          type: string
+          description: Presión en PSI
+          example: '32.80'
+
+        presion_trasera_derecha:
+          type: string
+          description: Presión en PSI
+          example: '34.10'
+
+        voltaje_bateria:
+          type: string
+          description: Voltaje de la batería en voltios
+          example: '13.20'
+
+        nivel_combustible:
+          type: string
+          description: Porcentaje de combustible disponible
+          example: '85.50'
+
+        fecha_medicion:
+          type: string
+          format: date-time
+          example: '2026-11-25T19:00:00.000Z'
+
+    Alerta:
+      type: object
+      properties:
+        tipo:
+          type: string
+          enum:
+            - temperatura
+            - presion
+            - bateria
+            - combustible
+            - comunicacion
+          example: comunicacion
+
+        mensaje:
+          type: string
+          example: No se reciben nuevas mediciones
+
+    Error:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: Error en la solicitud
+
+  responses:
+
+    SolicitudInvalida:
+      description: Parámetros o datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            mensaje: Identificador de vehículo inválido
+
+    NoAutenticado:
+      description: Token ausente, inválido o expirado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            mensaje: Token de autenticación requerido
+
+    AccesoDenegado:
+      description: El usuario no tiene permisos suficientes
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            mensaje: No tiene permiso para acceder a este vehículo
+
+    VehiculoNoEncontrado:
+      description: El vehículo solicitado no existe
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            mensaje: Vehículo no encontrado
+
+    ErrorServidor:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            mensaje: Error interno del servidor
